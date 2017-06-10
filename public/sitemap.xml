@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xhtml="http://www.w3.org/1999/xhtml">
+  
+  <url>
+    <loc>https://jaysonmpaul.com/projects/glare/</loc>
+    <lastmod>2017-06-09T20:06:32-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://jaysonmpaul.com/post/re-introducing-deployinator-as-a-gem/</loc>
+    <lastmod>2015-02-20T20:13:29-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://jaysonmpaul.com/post/continuous-integration-at-etsy-2/</loc>
+    <lastmod>2013-09-23T20:28:43-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://jaysonmpaul.com/post/continuous-integration-at-etsy-1/</loc>
+    <lastmod>2013-09-23T20:26:25-04:00</lastmod>
+  </url>
+  
+  <url>
+    <loc>https://jaysonmpaul.com/categories/</loc>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://jaysonmpaul.com/</loc>
+    <lastmod>2017-06-09T20:06:32-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://jaysonmpaul.com/post/</loc>
+    <lastmod>2015-02-20T20:13:29-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://jaysonmpaul.com/project/</loc>
+    <lastmod>2017-06-09T20:06:32-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://jaysonmpaul.com/tags/</loc>
+    <priority>0</priority>
+  </url>
+  
+</urlset>

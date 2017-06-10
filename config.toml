@@ -1,0 +1,23 @@
+baseURL = "https://jaysonmpaul.com/"
+languageCode = "en-us"
+title = "Jayson Paul"
+[params]
+  GithubID = "jayson"
+  TwitterID = "jaysonmpaul"
+  LinkedInID = "jayson-paul"
+  Name = "Jayson Paul"
+  HeaderUsername = "jpaul"
+  HeaderHostname = "jpaul"
+  Email = "jaysonpaul@gmail.com"
+  About = "Hi, I'm JPaul, and this is my website. I am a software engineer, competitive video game streamer, and self-proclaimed Smash Bros expert."
+  ProfilePicture = "https://secure.gravatar.com/avatar/b94de857bc99b08170d3b063c24fa51a?s=300&d=mm&r=g"
+
+[menu]
+  [[menu.header]]
+    name = "posts"
+    weight = 0
+    url = "/post"
+  [[menu.header]]
+    name = "projects"
+    weight = 0
+    url = "/project"

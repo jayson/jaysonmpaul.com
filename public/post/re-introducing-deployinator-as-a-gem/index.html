@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title> Re-Introducing Deployinator, now as a Gem &middot; Jayson Paul </title>
+
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="generator" content="Hugo 0.13" />
+
+
+<script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+
+
+<link rel="stylesheet" href="https://jaysonmpaul.com/css/nix.css">
+
+ 
+<link href="https://fonts.googleapis.com/css?family=Inconsolata|Open+Sans|Roboto|Montserrat|Concert+One" rel="stylesheet">
+
+
+
+
+    </head>
+
+    <body>
+        <header>
+<nav class="navbar navbar-default navbar-fixed-top navbar-inverse font-header">
+	<div class="container-fluid">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-1" aria-expanded="false">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" id="green-terminal" href=https://jaysonmpaul.com/>jpaul@jpaul ~ $</a>
+		</div>
+
+		
+		<div class="collapse navbar-collapse" id="navbar-collapse-1">
+			<ul class="nav navbar-nav navbar-right">
+				<li>
+					<a href="https://jaysonmpaul.com/">/home/jpaul</a>
+				</li>
+				
+				
+				<li >
+					<a href="/post">~/posts</a>
+				</li>
+				
+				
+				<li >
+					<a href="/project">~/projects</a>
+				</li>
+				
+
+			</ul>
+		</div>
+	</div>
+</nav>
+</header>
+
+        <div class="container wrapper">
+            <h1><a href="https://jaysonmpaul.com/post/re-introducing-deployinator-as-a-gem/">Re-Introducing Deployinator, now as a Gem</a></h1>
+            <span class="post-date">Feb 20, 2015 </span>
+            <div class="post-content">
+                
+
+<p>If you aren&rsquo;t familiar with Deployinator, it&rsquo;s a tool we wrote to deploy code to <a href="https://www.etsy.com/">Etsy.com</a>. We deploy code about 40 times per day. This allows us to push smaller changes we are confident about and experiment at a fast rate. Deployinator does a lot of heavy lifting for us. This includes updating source repositories on build machines, minifying/building javascript and css dependencies, kicking off automated tests and updating our staging environment before launching live. But Deployinator doesn&rsquo;t just deploy Etsy.com, it also manages deploys for a myriad of internal tools, such as our <a href="https://codeascraft.com/2012/03/13/making-it-virtually-easy-to-deploy-on-day-one/">Virtual Machine</a> provisioning system, and can even deploy itself. Within Deployinator, we call each of these independent deployments &ldquo;stacks&rdquo;. Deployinator includes a number of helper modules that make writing deployment stacks easy. Our current modules provide helpers for versioning, git operations, and for utilizing <a href="https://www.netfort.gr.jp/~dancer/software/dsh.html.en">DSH</a>. Deployinator works so well for us we thought it best to share.</p>
+
+<p>Four years ago we <a href="https://codeascraft.com/2010/05/20/quantum-of-deployment/">open sourced deployinator</a> for <a href="http://www.oscon.com/">OSCON</a>. At the time we created a new project on github with the Etsy related code removed and forked it internally. This diverged and was difficult to maintain for a few reasons. The original public release of Deployinator mixed core and stack related code, creating a tightly coupled codebase; Configuration and code that was committed to our internal fork could not be pushed to public github. Naturally, every internal commit that included private data invariably included changes to the Deployinator core as well. Untangling the public and private bits made merging back into the public fork difficult and over time impossible. If (for educational reasons) you are interested the old code it is still <a href="https://github.com/etsy/Deployinator/tree/master_old">available here</a>.</p>
+
+<p>Today we&rsquo;d like to announce our re-release of Deployinator as an <a href="https://github.com/etsy/Deployinator/tree/master">open source ruby gem</a> (<a href="https://rubygems.org/gems/etsy-deployinator">rubygems link</a>).  We built this release with open-source in mind from the start by changing our internal deployinator repository (renamed to DeployinatorStacks for clarity) to include an empty gem created on our public github. Each piece of core deployinator code was then individually untangled and moved into the gem. Since we now depend on the same public Deployinator core we should no longer have problems keeping everything in sync.</p>
+
+<p>While in the process of migrating Deployinator core into the gem it became apparent that we needed a way to hook into common functionality to extend it for our specific implementations. For example, we use graphite to record duration of deploys and the steps within. An example of some of the steps we track are template compilations, javascript and css asset building and rsync times. Since the methods to complete these steps are entirely within the gem, implementing a plugin architecture allows everyone to extend core gem functionality without needing a pull request merged. Our <a href="https://github.com/etsy/deployinator/blob/master/README.md">README</a> explains how to create deployment stacks using the gem and includes an example to help you get up and running.</p>
+
+<p><a href="https://codeascraft.com/wp-content/uploads/2015/02/deploy.png"><img src="https://codeascraft.com/wp-content/uploads/2015/02/deploy-1024x508.png" alt="deploy" /><br />
+</a>(Example of how deployinator looks with many stacks)</p>
+
+<h2 id="major-changes"><strong>Major Changes</strong></h2>
+
+<p>Deployinator now comes bundled with a simple service to tail running deploys logs to the front end. This replaces some overly complicated streaming middleware that was known to have problems. Deploys are now separate unix processes with descriptive proc titles. Before they were hard to discern requests running under your web server. The combination of these two things decouples deploys from the web request allowing uninterrupted flow in the case of network failures or accidental browser closings. Having separate processes also enables operators to monitor and manipulate deploys using traditional command line unix tools like ps and kill.</p>
+
+<p>This gem release also introduces some helpful namespacing. This means we&rsquo;re doing the right thing now.  In the previous open source release all helper and stack methods were mixed into every deploy stack and view. This caused name collisions and made it hard to share code between deployment stacks. Now helpers are only mixed in when needed and stacks are actual classes extending from a base class.</p>
+
+<p>We think this new release makes Deployinator more intuitive to use and contribute to and encourage everyone interested to try out the new gem. Please submit feedback as github issues and pull requests. The new code is available on our <a href="https://github.com/etsy/deployinator/tree/master">github</a>. Deployinator is at the core of Etsy&rsquo;s development and deployment model and how it keeps these fast. Bringing you this release embodies our generosity of spirit in engineering principle. If this sort of work interests you, <a href="https://www.etsy.com/careers/job/oNMo0fwH">our team is hiring</a>.</p>
+
+            </div>
+            
+            <div class="post-comments">
+                
+            </div>
+            
+            <div class="push"></div>
+        </div>
+        <footer class="footer text-center">
+<p>Copyright &copy; 2017 Jayson Paul -
+<span class="credit">
+	Powered by 
+	<a target="_blank" href="https://gohugo.io">Hugo</a>
+	and 
+	<a target="_blank" href="https://github.com/LordMathis/hugo-theme-nix/">Nix</a> theme.
+</span>
+</p>
+</footer>
+
+    </body>

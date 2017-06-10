@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title> LXC – Running 14,000 tests per day and beyond! (Part 1) &middot; Jayson Paul </title>
+
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="generator" content="Hugo 0.13" />
+
+
+<script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+
+
+<link rel="stylesheet" href="https://jaysonmpaul.com/css/nix.css">
+
+ 
+<link href="https://fonts.googleapis.com/css?family=Inconsolata|Open+Sans|Roboto|Montserrat|Concert+One" rel="stylesheet">
+
+
+
+
+    </head>
+
+    <body>
+        <header>
+<nav class="navbar navbar-default navbar-fixed-top navbar-inverse font-header">
+	<div class="container-fluid">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-1" aria-expanded="false">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" id="green-terminal" href=https://jaysonmpaul.com/>jpaul@jpaul ~ $</a>
+		</div>
+
+		
+		<div class="collapse navbar-collapse" id="navbar-collapse-1">
+			<ul class="nav navbar-nav navbar-right">
+				<li>
+					<a href="https://jaysonmpaul.com/">/home/jpaul</a>
+				</li>
+				
+				
+				<li >
+					<a href="/post">~/posts</a>
+				</li>
+				
+				
+				<li >
+					<a href="/project">~/projects</a>
+				</li>
+				
+
+			</ul>
+		</div>
+	</div>
+</nav>
+</header>
+
+        <div class="container wrapper">
+            <h1><a href="https://jaysonmpaul.com/post/continuous-integration-at-etsy-1/">LXC – Running 14,000 tests per day and beyond! (Part 1)</a></h1>
+            <span class="post-date">Sep 23, 2013 </span>
+            <div class="post-content">
+                
+
+<h2 id="continuous-integration-at-etsy">Continuous Integration at Etsy</h2>
+
+<p>As Etsy continues to grow and hire more developers, we have faced the continuous integration scaling challenge of how to execute multiple concurrent test suites without slowing the pace of our deploy queue. With a deployment rate of up to 65 deploys / day and a total of 30 test suites (unit tests, integration tests, functional tests, smokers&hellip;) that run for every deploy, this means running the test suites 1950 times a day.</p>
+
+<p>Our core philosophy is to work from the master branch as much as possible; while developers can run the test suites on their own virtual machines, it breaks the principle of <a href="http://en.wikipedia.org/wiki/Continuous_integration#Test_in_a_clone_of_the_production_environment">testing in a clone of a production environment</a>. Since everyone has root access and can install anything on their VMs, we can&rsquo;t ensure a sane, standard test environment on developer VMs. Yet, they must ensure their code will not break the tests before they commit, or they will block the deploy queue. To this end, we developed a small library called &ldquo;<a href="http://codeascraft.etsy.com/2011/10/11/did-you-try-it-before-you-committed/">try</a>&rdquo; which sends a diff of the developer&rsquo;s work to a Jenkins server that in turns applies it against the latest copy of the master branch and runs all the test suites (checkout <a href="https://github.com/etsy/TryLib">TryLib on github</a>). Unfortunately, providing this feedback loop to every developer comes at a cost. With up to 10 developers &ldquo;trying&rdquo; their changes simultaneously, we now need to run the test suites an additional 13700 times a day (we average 515 try runs a day, with different test suite configurations).</p>
+
+<p>Last but not least, the test feedback loop <a href="http://en.wikipedia.org/wiki/Continuous_integration#Keep_the_build_fast">ought to be short</a> to provide any value. Our current &ldquo;SLA&rdquo; for running all test suites is 5 minutes. Following the &ldquo;<a href="http://codeascraft.com/2011/04/20/divide-and-concur/">divide and concur</a>&rdquo; strategy and with the help of the <a href="https://github.com/etsy/jenkins-master-project">master project Jenkins plugin</a>, we are able to run the test suites in parallel. Our initial setup had to maintain multiple executors per box, which caused connection issues, and required preventing multiple executors from attempting to access the same Jenkins workspace at once.</p>
+
+<h2 id="workload-considerations">Workload Considerations</h2>
+
+<p>While parallelization was initially a major victory, it soon became problematic.  Our <a href="http://codeascraft.com/2011/04/20/divide-and-concur/">workload</a> consists of two different classes of tests: one class constrained by CPU (&ldquo;lightweight executors&rdquo;, which run our unit tests), and the other bound to disk I/O (&ldquo;heavyweight executors&rdquo;, which run our integration tests).  Prior to virtualization, we would find that if multiple heavyweight jobs ran on a single host, the host would slow to crawl, as its disk would be hammered.</p>
+
+<p>We also had issues with workspace contention when executing multiple jobs on a single host, and this need for filesystem isolation, in combination with resource contention and issues within Jenkins concerning too many parallel executors on a single host, led us toward the decision that virtualization was the best path forward.  We were, however, concerned with the logistics of managing potentially hundreds of VMs using our <a href="http://codeascraft.etsy.com/2012/03/13/making-it-virtually-easy-to-deploy-on-day-one/">standard KVM/QEMU/libvirt environment</a>.</p>
+
+<h2 id="virtualization-with-lxc">Virtualization with LXC</h2>
+
+<p>Enter LXC, a technology wonderfully suited to virtualizing homogenized workloads.  Knowing that the majority of our executors are constrained on CPU, we realized that using a virtualization technology for which we would need to be conscious about resource allocation did not make sense for our needs.  Instead of concerning ourselves with processor pinning, RAM provisioning, disk imaging, and managing multiple running kernels, LXC allows us to shove a bunch of jailed processes in LVM containers and call it a day.</p>
+
+<p>While the workings of LXC are outside the scope of this post, here is a little bit of information about our specific configuration.  Our physical hosts are 2U Supermicro chassis containing four blades each.  Each blade has three attached SSDs for a total of 12 disks per chassis.  In our case, disk I/O is a key constraint; if we run two heavyweight jobs accessing a single disk simultaneously, the run time doubles for each job.  In order to maintain our 5 minute run time SLA, we ensure that only one heavyweight executor runs on each disk at any given time.</p>
+
+<p>Previously, we had many executors running on each physical host, but with LXC, we have decided that each container (LXC&rsquo;s terminology for a virtualized instance) shall host a single executor.  Maintaining a 1:1 container:executor mapping alleviates the connection issues we saw prior to virtualization within Jenkins while trying to maintain a large number of executors per host, and we never have to worry about multiple executors attempting to access the same Jenkins workspace at once.  It also allows for easy provisioning using the Virtual Madness interface discussed below.</p>
+
+<p>Continue to <a href="https://jaysonmpaul.com/post/continuous-integration-at-etsy-2">Part 2</a>&hellip;</p>
+
+<p>Co-written by Nassim Kammah, Patrick McDonnell and Jayson Paul. Be sure to stay tuned for Part 2 of this blog post where Jayson will be discussing automating this process of automating LXC management.</p>
+
+<p><em>You can follow Nassim on Twitter at </em><a href="https://twitter.com/kepioo">@kepioo</a><br />
+<em>You can follow Patrick on Twitter at <a href="https://twitter.com/mcdonnps">@mcdonnps<br />
+</a>You can follow Jayson on Twitter at <a href="https://twitter.com/jaysonmpaul">@jaysonmpaul</a></em></p>
+
+            </div>
+            
+            <div class="post-comments">
+                
+            </div>
+            
+            <div class="push"></div>
+        </div>
+        <footer class="footer text-center">
+<p>Copyright &copy; 2017 Jayson Paul -
+<span class="credit">
+	Powered by 
+	<a target="_blank" href="https://gohugo.io">Hugo</a>
+	and 
+	<a target="_blank" href="https://github.com/LordMathis/hugo-theme-nix/">Nix</a> theme.
+</span>
+</p>
+</footer>
+
+    </body>

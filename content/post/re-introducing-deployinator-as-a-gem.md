@@ -1,0 +1,27 @@
++++
+date = "2015-02-20T20:13:29-04:00"
+draft = false
+title = "Re-Introducing Deployinator, now as a Gem"
+project_url = "https://github.com/jayson/glare"
+
++++
+
+If you aren't familiar with Deployinator, it's a tool we wrote to deploy code to [Etsy.com](https://www.etsy.com/). We deploy code about 40 times per day. This allows us to push smaller changes we are confident about and experiment at a fast rate. Deployinator does a lot of heavy lifting for us. This includes updating source repositories on build machines, minifying/building javascript and css dependencies, kicking off automated tests and updating our staging environment before launching live. But Deployinator doesn't just deploy Etsy.com, it also manages deploys for a myriad of internal tools, such as our [Virtual Machine](https://codeascraft.com/2012/03/13/making-it-virtually-easy-to-deploy-on-day-one/) provisioning system, and can even deploy itself. Within Deployinator, we call each of these independent deployments "stacks". Deployinator includes a number of helper modules that make writing deployment stacks easy. Our current modules provide helpers for versioning, git operations, and for utilizing [DSH](https://www.netfort.gr.jp/~dancer/software/dsh.html.en). Deployinator works so well for us we thought it best to share.
+
+Four years ago we [open sourced deployinator](https://codeascraft.com/2010/05/20/quantum-of-deployment/) for [OSCON](http://www.oscon.com/). At the time we created a new project on github with the Etsy related code removed and forked it internally. This diverged and was difficult to maintain for a few reasons. The original public release of Deployinator mixed core and stack related code, creating a tightly coupled codebase; Configuration and code that was committed to our internal fork could not be pushed to public github. Naturally, every internal commit that included private data invariably included changes to the Deployinator core as well. Untangling the public and private bits made merging back into the public fork difficult and over time impossible. If (for educational reasons) you are interested the old code it is still [available here](https://github.com/etsy/Deployinator/tree/master_old).
+
+Today we'd like to announce our re-release of Deployinator as an [open source ruby gem](https://github.com/etsy/Deployinator/tree/master) ([rubygems link](https://rubygems.org/gems/etsy-deployinator)).  We built this release with open-source in mind from the start by changing our internal deployinator repository (renamed to DeployinatorStacks for clarity) to include an empty gem created on our public github. Each piece of core deployinator code was then individually untangled and moved into the gem. Since we now depend on the same public Deployinator core we should no longer have problems keeping everything in sync.
+
+While in the process of migrating Deployinator core into the gem it became apparent that we needed a way to hook into common functionality to extend it for our specific implementations. For example, we use graphite to record duration of deploys and the steps within. An example of some of the steps we track are template compilations, javascript and css asset building and rsync times. Since the methods to complete these steps are entirely within the gem, implementing a plugin architecture allows everyone to extend core gem functionality without needing a pull request merged. Our [README](https://github.com/etsy/deployinator/blob/master/README.md) explains how to create deployment stacks using the gem and includes an example to help you get up and running.
+
+[![deploy](https://codeascraft.com/wp-content/uploads/2015/02/deploy-1024x508.png)\
+](https://codeascraft.com/wp-content/uploads/2015/02/deploy.png)(Example of how deployinator looks with many stacks)
+
+**Major Changes**
+-----------------
+
+Deployinator now comes bundled with a simple service to tail running deploys logs to the front end. This replaces some overly complicated streaming middleware that was known to have problems. Deploys are now separate unix processes with descriptive proc titles. Before they were hard to discern requests running under your web server. The combination of these two things decouples deploys from the web request allowing uninterrupted flow in the case of network failures or accidental browser closings. Having separate processes also enables operators to monitor and manipulate deploys using traditional command line unix tools like ps and kill.
+
+This gem release also introduces some helpful namespacing. This means we're doing the right thing now.  In the previous open source release all helper and stack methods were mixed into every deploy stack and view. This caused name collisions and made it hard to share code between deployment stacks. Now helpers are only mixed in when needed and stacks are actual classes extending from a base class.
+
+We think this new release makes Deployinator more intuitive to use and contribute to and encourage everyone interested to try out the new gem. Please submit feedback as github issues and pull requests. The new code is available on our [github](https://github.com/etsy/deployinator/tree/master). Deployinator is at the core of Etsy's development and deployment model and how it keeps these fast. Bringing you this release embodies our generosity of spirit in engineering principle. If this sort of work interests you, [our team is hiring](https://www.etsy.com/careers/job/oNMo0fwH).

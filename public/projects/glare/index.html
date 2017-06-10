@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title> Glare: Lightweight Replacement for Glance &middot; Jayson Paul </title>
+
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="generator" content="Hugo 0.13" />
+
+
+<script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+
+
+<link rel="stylesheet" href="https://jaysonmpaul.com/css/nix.css">
+
+ 
+<link href="https://fonts.googleapis.com/css?family=Inconsolata|Open+Sans|Roboto|Montserrat|Concert+One" rel="stylesheet">
+
+
+
+
+    </head>
+
+    <body>
+        <header>
+<nav class="navbar navbar-default navbar-fixed-top navbar-inverse font-header">
+	<div class="container-fluid">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-1" aria-expanded="false">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" id="green-terminal" href=https://jaysonmpaul.com/>jpaul@jpaul ~ $</a>
+		</div>
+
+		
+		<div class="collapse navbar-collapse" id="navbar-collapse-1">
+			<ul class="nav navbar-nav navbar-right">
+				<li>
+					<a href="https://jaysonmpaul.com/">/home/jpaul</a>
+				</li>
+				
+				
+				<li >
+					<a href="/post">~/posts</a>
+				</li>
+				
+				
+				<li >
+					<a href="/project">~/projects</a>
+				</li>
+				
+
+			</ul>
+		</div>
+	</div>
+</nav>
+</header>
+
+        <div class="container wrapper">
+            <h1><a href="https://jaysonmpaul.com/projects/glare/">Glare: Lightweight Replacement for Glance</a></h1>
+            <span class="post-date">Jun 9, 2017 </span>
+            <div class="post-content">
+                
+
+<h1 id="glance">Glance</h1>
+
+<p>About a year ago I was tasked with upgrading our <a href="https://jaysonmpaul.com/post/continuous-integration-at-etsy-2/">Virtual Machine tooling</a> from CentOS 6 to Centos 7. We were using KVM and QEMU for our developer VMs. We had a very lightweight installation of <a href="https://www.openstack.org/software/releases/ocata/components/glance">OpenStack Glance</a> for serving our base images used during creation and bootstrap. In true CentOS fashion, the version of glance that shipped with it was very outdated: <a href="https://github.com/openstack/glance/releases/tag/2012.1.1">2012.1.1</a>.</p>
+
+<p>Not surprisingly, the version that came with CentOS 7 was much newer but still hopelessly out of date: <a href="https://github.com/openstack/glance/releases/tag/2015.1.0">2015.1.0</a>. This didn&rsquo;t stop the entire setup from being entirely re-architected. What was once just a single package install and a small MySQL database had ballooned into 15+ packages and there was no way to upgrade the configuration. Once I got glance installed that wasn&rsquo;t the end. It apparently required I set up half of OpenStack as well including <a href="https://www.openstack.org/software/releases/ocata/components/keystone">Keystone Auth</a>.</p>
+
+<p>After spending a few days trying to get all the requisite packages installed and configured for what amounted to a few scripts to uploading images and an http hosted image repo, I thought to myself &ldquo;Couldn&rsquo;t I just write this in bash?&rdquo;. At this point I was somewhat frustrated with glance so I made the name a play off the name. With that, <a href="https://github.com/jayson/glare">Glare</a> was born.</p>
+
+<h1 id="building-glare">Building Glare</h1>
+
+<p>I started off by creating a script for adding a new image to the repository. We didn&rsquo;t need the tons of metadata the new Glance supported, just the image, a message and max number of images of that type to store. Pair this with apache and wget and I should have a working image store and cache. Seems easy enough!</p>
+
+<h2 id="adding-images">Adding images</h2>
+
+<pre><code class="language-bash">IMAGE_SHORTNAME=$(basename $IMAGE)
+
+MD5=$(md5sum $IMAGE | cut -d' ' -f1)
+echo &quot;Uploading $IMAGE as $IMAGE_SHORTNAME-$MD5&quot;
+mkdir -p $ARCHIVE_DIR
+pv $IMAGE &gt; $ARCHIVE_DIR/$IMAGE_SHORTNAME-$MD5
+echo &quot;Setting current image to uploaded...&quot;
+ln -sf $DIRECTORY/archive/$IMAGE_SHORTNAME-$MD5 $DIRECTORY/$IMAGE_SHORTNAME
+echo &quot;Writing changelog...&quot;
+touch $DIRECTORY/$IMAGE_SHORTNAME.md
+echo &quot;# [$MD5] - $(date)&quot;$'\n'&quot;## $MESSAGE&quot;$'\n\n'&quot;$(cat $DIRECTORY/$IMAGE_SHORTNAME.md)&quot; &gt; $DIRECTORY/$IMAGE_SHORTNAME.md
+echo &quot;Success!&quot;
+</code></pre>
+
+<p>This takes the name of the file you are uploading as the image name, adds a unique identifier and places it in your configured image root in an archive folder. It keeps a symlink of latest image available at the top level. It also creates a small markdown metadata file including the message specified.</p>
+
+<p>I added some nice option and configuration parsing,  loading configurations first from /etc/glare.conf, then ~/.glare.conf and lastly passed from the command line. I also implemented a maximum number of old images to keep so I didn&rsquo;t fill the disk. <a href="https://github.com/jayson/glare/blob/master/bin/glare-add-image">See full script</a>.</p>
+
+<h2 id="building-index">Building Index</h2>
+
+<p>We had previously written a small python script for querying the glance api and pulling down the latest images on each of our host machines for building new VMs locally. With glare I wanted to keep this as simple as possible so I used apache to serve up the image root directory, but really any flavor of web server could be used here.</p>
+
+<p>Since I was just serving up a directory of files via HTTP, I needed a way to &ldquo;query&rdquo; what image types were available.</p>
+
+<pre><code class="language-bash">(cd $DIRECTORY ; find . -type l -exec basename {} \; &gt; $DIRECTORY/images.txt)
+</code></pre>
+
+<p>Simple yet effective! Now I had an images.txt that I could curl in my caching script that looked like this</p>
+
+<pre><code>cent6_vm_template
+cent6_vanilla_vm_template
+cent7_vm_template
+</code></pre>
+
+<p>See <a href="https://github.com/jayson/glare/blob/master/bin/glare-rebuild-index">full script here</a></p>
+
+<h2 id="caching-images">Caching Images</h2>
+
+<p>Great! The server side of this was complete and now I just needed something that cached all available images on every host that we built VMs on. First grab a list of all available image types and then download the images to a local cache directory. I knew wget had mirroring capability so I opened up the man page to learn some of the more obscure wget params:</p>
+
+<pre><code class="language-bash">IMAGE_LIST=$(curl $SERVER/images.txt)
+for image in $IMAGE_LIST; do (cd $DOWNLOAD_DIR &amp;&amp; wget -nv -nH --cut-dirs=1 --unlink -N $SERVER/$image); done
+</code></pre>
+
+<ol>
+<li><code>-nv</code> for non-verbose script output</li>
+<li><code>-nH</code> to remove glare.website.com from the directory stucture</li>
+<li><code>--cut-dirs=1</code> to cut the image name down down to the base name with no directories</li>
+<li><code>-N</code> to turn off timestamping and keep server timestamps</li>
+</ol>
+
+<h3 id="what-about-unlink">What about <code>--unlink</code>?</h3>
+
+<p>When implementing this solution, I found that if a wget was running when I tried to make a new VM, it would get created with a half downloaded image. I needed to get a little tricky to maintain <a href="https://en.wikipedia.org/wiki/Atomicity_(programming)">Atomicity</a> of my downloads. Even if I downloaded the images to a download directory and moved them into place there is a possibility of a race condition with large files. Here is what I came up with:</p>
+
+<ol>
+<li>Create a hard link for all files in the download directory into the cache directory. This causes there to only ever be a single image on disk if there are no updates to download.</li>
+</ol>
+
+<pre><code class="language-bash">for i in $(ls $TARGET_DIR); do ln -f $TARGET_DIR/$i $DOWNLOAD_DIR/$i; done
+</code></pre>
+
+<ol>
+<li>wget with &ndash;unlink parameter so that if a newer image exists on the remote server it will undo the hard link before replacing it, creating another copy so new VMs would get that while it&rsquo;s downloading</li>
+<li>Update the hard links for all files in the download directory to the cache directory to instantly update images with a single disk operation</li>
+</ol>
+
+<pre><code class="language-bash">for i in $(ls $DOWNLOAD_DIR); do ln -f $DOWNLOAD_DIR/$i $TARGET_DIR/$i; done
+</code></pre>
+
+<p>With this neat trick I am also able to delete the download directory every sync removing clutter since it is recreated with hard links on every run (including timestamp so wget knows what is new).</p>
+
+<pre><code class="language-bash"># Create template directory
+mkdir -p $TARGET_DIR
+# Create temporary download dir
+mkdir -p $DOWNLOAD_DIR
+# Hard link all current copies of templates (used later with wget option --unlink to provide atomic downloads)
+for i in $(ls $TARGET_DIR); do ln -f $TARGET_DIR/$i $DOWNLOAD_DIR/$i; done
+IMAGE_LIST=$(curl $SERVER/images.txt)
+# Download images that are out of date unlinking ones it clobbers without changing anything in live template directory
+for image in $IMAGE_LIST; do (cd $DOWNLOAD_DIR &amp;&amp; wget -nv -nH --cut-dirs=1 --unlink -N $SERVER/$image); done
+# Atomically hard link all changed images
+for i in $(ls $DOWNLOAD_DIR); do ln -f $DOWNLOAD_DIR/$i $TARGET_DIR/$i; done
+# Clean up download dir
+rm -rf $DOWNLOAD_DIR
+</code></pre>
+
+<p>See <a href="https://github.com/jayson/glare/blob/master/bin/glare-sync">full script with option parsing</a></p>
+
+<h2 id="command-line-usability">Command Line Usability</h2>
+
+<p>Having these three separate commands worked just fine but I wanted to emulate the behavior of git where <code>git-anything</code> can also be called by invoking <code>git anything</code>. Git also doesn&rsquo;t care where the subcommands live as long as they are in your path. Git isn&rsquo;t written in bash so I came up with something myself:</p>
+
+<pre><code class="language-bash">GLARE_PATH=&quot;$(dirname $(readlink -f $0))/&quot;
+
+PATH_FOR_PLUGINS=&quot;$GLARE_PATH:$PATH&quot;
+SUB_COMMAND=$(PATH=&quot;$PATH_FOR_PLUGINS&quot; which glare-$1 2&gt;/dev/null)
+RETURN_VAL=$?
+
+if [ 0 -eq $RETURN_VAL ]; then
+    shift
+    $SUB_COMMAND &quot;$@&quot;
+else
+    SUB_CMDS=$(IFS=:; find $PATH_FOR_PLUGINS -maxdepth 1 -executable -type f -name 'glare-*' -printf '%f\n' 2&gt;/dev/null | cut -d'-' -f2-1000 | sort | uniq)
+    echo &quot;Invalid glare command $1&quot;
+    echo &quot;Valid subcommands:&quot;
+    for i in $SUB_CMDS; do 
+        SHORT_USAGE=$(PATH=$PATH_FOR_PLUGINS glare $i -h 2&gt;/dev/null | sed -e 's/Usage.*glare-/glare /')
+        if [ 0 -eq $? -a -n &quot;$SHORT_USAGE&quot; ]; then
+            echo $SHORT_USAGE;
+        else
+            echo &quot;glare $i&quot;
+        fi
+    done
+    exit 1
+fi
+</code></pre>
+
+<p>This takes the current path glare is being run from as the highest level path heirarchy and adds it to your <code>$PATH</code>. Then it searches for all <code>glare-*</code> executables in this path and will ferry along all the parameters to the right executable. Now I was able to run <code>glare sync</code> or <code>glare add-image</code> instead of <code>glare-add-image</code>. This wasn&rsquo;t a necessary feature, I just thought it added a nicer user experience and allows others to plug into glare for their own additions.</p>
+
+<p>I also added a <a href="https://github.com/jayson/glare/blob/master/Makefile">Makefile</a> for installing my scripts. It supports installing to /usr/local/ or any prefix you specify. I added a snarky <a href="https://github.com/jayson/glare/blob/master/README.txt">README</a> about Keystone Auth and called it a day.</p>
+
+                
+                <div id="ribbon">
+                    <a href="https://github.com/jayson/glare.git" rel="me">Fork me on GitHub</a>
+                </div>
+                
+            </div>
+            
+            <div class="post-comments">
+                
+            </div>
+            
+            <div class="push"></div>
+        </div>
+        <footer class="footer text-center">
+<p>Copyright &copy; 2017 Jayson Paul -
+<span class="credit">
+	Powered by 
+	<a target="_blank" href="https://gohugo.io">Hugo</a>
+	and 
+	<a target="_blank" href="https://github.com/LordMathis/hugo-theme-nix/">Nix</a> theme.
+</span>
+</p>
+</footer>
+
+    </body>

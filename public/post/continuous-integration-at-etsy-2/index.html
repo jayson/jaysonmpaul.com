@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title> LXC – Automating Containers aka Virtual Madness (Part 2) &middot; Jayson Paul </title>
+
+        <meta http-equiv="content-type" content="text/html; charset=utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="generator" content="Hugo 0.13" />
+
+
+<script   src="https://code.jquery.com/jquery-3.1.1.min.js"   integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="   crossorigin="anonymous"></script>
+
+
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+
+<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" integrity="sha384-T8Gy5hrqNKT+hzMclPo118YTQO6cYprQmhrYwIiQ/3axmI1hQomh7Ud2hPOy8SP1" crossorigin="anonymous">
+
+
+<link rel="stylesheet" href="https://jaysonmpaul.com/css/nix.css">
+
+ 
+<link href="https://fonts.googleapis.com/css?family=Inconsolata|Open+Sans|Roboto|Montserrat|Concert+One" rel="stylesheet">
+
+
+
+
+    </head>
+
+    <body>
+        <header>
+<nav class="navbar navbar-default navbar-fixed-top navbar-inverse font-header">
+	<div class="container-fluid">
+		<div class="navbar-header">
+			<button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar-collapse-1" aria-expanded="false">
+				<span class="sr-only">Toggle navigation</span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+				<span class="icon-bar"></span>
+			</button>
+			<a class="navbar-brand" id="green-terminal" href=https://jaysonmpaul.com/>jpaul@jpaul ~ $</a>
+		</div>
+
+		
+		<div class="collapse navbar-collapse" id="navbar-collapse-1">
+			<ul class="nav navbar-nav navbar-right">
+				<li>
+					<a href="https://jaysonmpaul.com/">/home/jpaul</a>
+				</li>
+				
+				
+				<li >
+					<a href="/post">~/posts</a>
+				</li>
+				
+				
+				<li >
+					<a href="/project">~/projects</a>
+				</li>
+				
+
+			</ul>
+		</div>
+	</div>
+</nav>
+</header>
+
+        <div class="container wrapper">
+            <h1><a href="https://jaysonmpaul.com/post/continuous-integration-at-etsy-2/">LXC – Automating Containers aka Virtual Madness (Part 2)</a></h1>
+            <span class="post-date">Sep 23, 2013 </span>
+            <div class="post-content">
+                
+
+<h2 id="presenting-virtual-madness">Presenting Virtual Madness!</h2>
+
+<p>This is part 2 of our LXC blog post. If you missed the first half you can <a href="https://jaysonmpaul.com/post/continuous-integration-at-etsy-1">read it here</a>.</p>
+
+<p>We already have much tooling around <a href="http://codeascraft.com/2012/03/13/making-it-virtually-easy-to-deploy-on-day-one/">making it easy to create a virtual machine</a> for each developer, so it made sense to build our LXC virtualization tools into the same interface.</p>
+
+<h2 id="blog1-https-codeascraft-com-wp-content-uploads-2013-09-blog1-e1379952261153-png-https-codeascraft-com-wp-content-uploads-2013-09-blog1-e1379952261153-png"><a href="https://codeascraft.com/wp-content/uploads/2013/09/blog1-e1379952261153.png"><img src="https://codeascraft.com/wp-content/uploads/2013/09/blog1-e1379952261153.png" alt="blog1" /></a></h2>
+
+<p>As shown above, our main page gives a quick look into all the LXC Containers that are running and the Jenkins instances to which they are attached. The containers are known colloquially as the Bobs, a reference to Bob the Builder. The interface also separates the Bobs by physical disk for ease of detecting if any of the virtual hosts&rsquo; disks are overloaded.</p>
+
+<p>Creation of a new Bob follows our one button deploy principle we strive for at Etsy:</p>
+
+<p><a href="https://codeascraft.com/wp-content/uploads/2013/09/blog2-e1379952393230.png"><img src="https://codeascraft.com/wp-content/uploads/2013/09/blog2-e1379952393230.png" alt="blog2" /></a></p>
+
+<p>The next numerically available hostname is automatically populated into the form by referencing all defined hosts in <a href="http://www.opscode.com/chef/">Chef</a> and finding the first gap in numbering. The first physical host with enough free disk space is pre-selected from the drop-down and is determined according to the fact that we can fit 14 Bobs on each physical host (more on that later). Simply clicking the &ldquo;Make it&rdquo; button will kick off the process of creating an LXC container, and its progress is streamed via <a href="http://dev.w3.org/html5/websockets/">websockets</a>to the browser in real-time.</p>
+
+<p>The process of creating a new container is roughly as follows. Which of the disks on any given physical host has room for a new Bob is determined by a simple rule: the first disk holds a maximum of four Bobs, and the second and third disk hold a maximum of five each. Only four are allowed on the first disk in order to save room for the host OS and a base LVM volume which we clone for each Bob. The first numerically available IP address in any of our virtual host subnets is allocated to the Bob by iterating through reverse DNS lookups on the range until an NXDOMAIN is returned. <a href="http://en.wikipedia.org/wiki/Nsupdate">nsupdate</a> is used to dynamically create the DNS entries for the new container. An empty LVM volume is then created by using lvcreate and mkfs.ext3, it is mounted, and rsync is used to clone the base volume to the empty volume.</p>
+
+<p>The base volume is created in advance by cloning the physical host&rsquo;s root filesystem (which is configured almost exactly the same way as the Bobs) and then filtering out some unneeded items. /dev is fixed using <a href="http://en.wikipedia.org/wiki/Mknod#Node_creation">mknod</a> because a simple rsync will render it useless. <a href="http://en.wikipedia.org/wiki/Sed">Sed</a> is used to fix all the network settings in /etc/sysconfig. Unneeded services are disabled by creating a small bash script inside the volume and then <a href="http://en.wikipedia.org/wiki/Chroot">chrooting</a> to run it.</p>
+
+<p>Once the base volume is copied into our new volume, the Chef authorization key is removed so that the container is forced to automatically reregister with our Chef server as a new node with its newly specified hostname. Our default route to the gateway is added based on subnet and datacenter. An LXC config file is then created using the IP address and other options. lxc.cgroup.cpuset.cpus is set to 0 as our containers are not pinned to a specific set of CPU cores. This allows each executor to use as many CPU cores as can be allocated at any given time.</p>
+
+<p>Finally, we bootstrap the node using Chef, bringing the node up to date with all our current packages and configurations. This is necessary because the base LVM volume from which the new container is cloned is created in advance and often has stale configurations.</p>
+
+<p>There is also a batch UI which executes the exact same process as above but allows for the creation of Bobs in bulk:</p>
+
+<p><a href="https://codeascraft.com/wp-content/uploads/2013/09/blog3-e1379952479461.png"><img src="https://codeascraft.com/wp-content/uploads/2013/09/blog3-e1379952479461.png" alt="blog3" /></a></p>
+
+<p>Once Bobs are created, they are ready to be attached to Jenkins instances and given executor roles:</p>
+
+<p><a href="https://codeascraft.com/wp-content/uploads/2013/09/blog4-e1379952550551.png"><img src="https://codeascraft.com/wp-content/uploads/2013/09/blog4-e1379952550551.png" alt="blog4" /></a></p>
+
+<p>This interface allows for the choice of instance and label (executor), and the number of Bobs to attach. Unattached Bobs are surfaced by use of the <a href="https://wiki.jenkins-ci.org/display/JENKINS/Remote+access+API">Jenkins API</a>. After iterating through all unattached Bobs, taking into account the rule of only one heavy executor per disk, a <a href="http://groovy.codehaus.org/">groovy</a> script is used to attach the Bob to Jenkins. The Jenkins API did not provide this functionality, but it does allow for the execution of groovy scripts, which we leveraged to automate this.</p>
+
+<p>For our final bit of automation around this process, we created a one-button interface to wipe and rebuild the base LVM container on all physical hosts. This is necessary when the LVM containers fall very far out of date and start to cause issues bringing Bobs up to date using Chef. This interface simply performs the base container creation task described above across any number of physical hosts.</p>
+
+<p><a href="https://codeascraft.com/wp-content/uploads/2013/09/blog5-e1379952729482.png"><img src="https://codeascraft.com/wp-content/uploads/2013/09/blog5-e1379952729482.png" alt="blog5" /></a></p>
+
+<p>All in all, this virtual madness allowed us to turn our many manual processes of setting up LXC containers into simple one-button deploys. How do you handle this kind of stuff? Let us know in the comments!</p>
+
+<p>Co-written by Jayson Paul, Patrick McDonnell and Nassim Kammah.</p>
+
+<p><em>You can follow Jayson on Twitter at <a href="https://twitter.com/jaysonmpaul">@jaysonmpaul</a><br />
+You can follow Patrick on Twitter at <a href="https://twitter.com/mcdonnps">@mcdonnps</a></em></p>
+
+            </div>
+            
+            <div class="post-comments">
+                
+            </div>
+            
+            <div class="push"></div>
+        </div>
+        <footer class="footer text-center">
+<p>Copyright &copy; 2017 Jayson Paul -
+<span class="credit">
+	Powered by 
+	<a target="_blank" href="https://gohugo.io">Hugo</a>
+	and 
+	<a target="_blank" href="https://github.com/LordMathis/hugo-theme-nix/">Nix</a> theme.
+</span>
+</p>
+</footer>
+
+    </body>

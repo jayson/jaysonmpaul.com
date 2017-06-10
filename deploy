@@ -1,0 +1,4 @@
+#!/bin/bash
+
+hugo --theme=hugo-theme-nix
+rsync -arv public/ bl:jaysonmpaul.com/web/
