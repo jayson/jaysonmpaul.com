@@ -1,8 +1,7 @@
 +++
 date = "2017-06-09T20:06:32-04:00"
-name = "Glare"
 title = "Glare: Lightweight Replacement for Glance"
-url = "projects/glare"
+draft = false
 project_url = "https://github.com/jayson/glare.git"
 +++
 

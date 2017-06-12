@@ -6,10 +6,20 @@
     <description>Recent content in Posts on Jayson Paul</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
-    <lastBuildDate>Fri, 20 Feb 2015 20:13:29 -0400</lastBuildDate>
+    <lastBuildDate>Fri, 09 Jun 2017 20:06:32 -0400</lastBuildDate>
     
 	<atom:link href="https://jaysonmpaul.com/post/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Glare: Lightweight Replacement for Glance</title>
+      <link>https://jaysonmpaul.com/post/glare/</link>
+      <pubDate>Fri, 09 Jun 2017 20:06:32 -0400</pubDate>
+      
+      <guid>https://jaysonmpaul.com/post/glare/</guid>
+      <description>Glance About a year ago I was tasked with upgrading our Virtual Machine tooling from CentOS 6 to Centos 7. We were using KVM and QEMU for our developer VMs. We had a very lightweight installation of OpenStack Glance for serving our base images used during creation and bootstrap. In true CentOS fashion, the version of glance that shipped with it was very outdated: 2012.1.1.
+Not surprisingly, the version that came with CentOS 7 was much newer but still hopelessly out of date: 2015.</description>
+    </item>
     
     <item>
       <title>Re-Introducing Deployinator, now as a Gem</title>

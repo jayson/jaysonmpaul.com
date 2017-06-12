@@ -17,7 +17,3 @@ title = "Jayson Paul"
     name = "posts"
     weight = 0
     url = "/post"
-  [[menu.header]]
-    name = "projects"
-    weight = 0
-    url = "/project"

@@ -2,8 +2,6 @@
 date = "2015-02-20T20:13:29-04:00"
 draft = false
 title = "Re-Introducing Deployinator, now as a Gem"
-project_url = "https://github.com/jayson/glare"
-
 +++
 
 If you aren't familiar with Deployinator, it's a tool we wrote to deploy code to [Etsy.com](https://www.etsy.com/). We deploy code about 40 times per day. This allows us to push smaller changes we are confident about and experiment at a fast rate. Deployinator does a lot of heavy lifting for us. This includes updating source repositories on build machines, minifying/building javascript and css dependencies, kicking off automated tests and updating our staging environment before launching live. But Deployinator doesn't just deploy Etsy.com, it also manages deploys for a myriad of internal tools, such as our [Virtual Machine](https://codeascraft.com/2012/03/13/making-it-virtually-easy-to-deploy-on-day-one/) provisioning system, and can even deploy itself. Within Deployinator, we call each of these independent deployments "stacks". Deployinator includes a number of helper modules that make writing deployment stacks easy. Our current modules provide helpers for versioning, git operations, and for utilizing [DSH](https://www.netfort.gr.jp/~dancer/software/dsh.html.en). Deployinator works so well for us we thought it best to share.
