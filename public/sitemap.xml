@@ -23,6 +23,12 @@
   </url>
   
   <url>
+    <loc>https://jaysonmpaul.com/tags/bash/</loc>
+    <lastmod>2017-06-09T20:06:32-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://jaysonmpaul.com/categories/</loc>
     <priority>0</priority>
   </url>
@@ -34,13 +40,32 @@
   </url>
   
   <url>
+    <loc>https://jaysonmpaul.com/tags/openstack/</loc>
+    <lastmod>2017-06-09T20:06:32-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://jaysonmpaul.com/post/</loc>
     <lastmod>2017-06-09T20:06:32-04:00</lastmod>
     <priority>0</priority>
   </url>
   
   <url>
+    <loc>https://jaysonmpaul.com/tags/projects/</loc>
+    <lastmod>2017-06-09T20:06:32-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
     <loc>https://jaysonmpaul.com/tags/</loc>
+    <lastmod>2017-06-09T20:06:32-04:00</lastmod>
+    <priority>0</priority>
+  </url>
+  
+  <url>
+    <loc>https://jaysonmpaul.com/tags/virualization/</loc>
+    <lastmod>2017-06-09T20:06:32-04:00</lastmod>
     <priority>0</priority>
   </url>
   

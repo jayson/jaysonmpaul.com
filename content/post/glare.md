@@ -1,15 +1,22 @@
 +++
 date = "2017-06-09T20:06:32-04:00"
 title = "Glare: Lightweight Replacement for Glance"
-draft = false
 project_url = "https://github.com/jayson/glare.git"
+tags = [
+    "bash",
+    "virualization",
+    "openstack",
+    "projects",
+]
+draft = false
+
 +++
 
 # Glance
 
-About a year ago I was tasked with upgrading our [Virtual Machine tooling](https://jaysonmpaul.com/post/continuous-integration-at-etsy-2/) from CentOS 6 to Centos 7. We were using KVM and QEMU for our developer VMs. We had a very lightweight installation of [OpenStack Glance](https://www.openstack.org/software/releases/ocata/components/glance) for serving our base images used during creation and bootstrap. In true CentOS fashion, the version of glance that shipped with it was very outdated: [2012.1.1](https://github.com/openstack/glance/releases/tag/2012.1.1).
+About a year ago I was tasked with upgrading our [Virtual Machine tooling](https://jaysonmpaul.com/post/continuous-integration-at-etsy-2/) from CentOS 6 to Centos 7. We use KVM and QEMU for our developer VMs and had a very lightweight installation of [OpenStack Glance](https://www.openstack.org/software/releases/ocata/components/glance) for serving our base images used during creation and bootstrap. In true CentOS fashion, the version of glance that shipped with it was very outdated: [2012.1.1](https://github.com/openstack/glance/releases/tag/2012.1.1).
 
-Not surprisingly, the version that came with CentOS 7 was much newer but still hopelessly out of date: [2015.1.0](https://github.com/openstack/glance/releases/tag/2015.1.0). This didn't stop the entire setup from being entirely re-architected. What was once just a single package install and a small MySQL database had ballooned into 15+ packages and there was no way to upgrade the configuration. Once I got glance installed that wasn't the end. It apparently required I set up half of OpenStack as well including [Keystone Auth](https://www.openstack.org/software/releases/ocata/components/keystone).
+Not surprisingly, the version that came with CentOS 7 was much newer but still hopelessly out of date: [2015.1.0](https://github.com/openstack/glance/releases/tag/2015.1.0). This didn't stop the entire glance infrastructure from being entirely re-built. What was once just a single package install and a small MySQL database had ballooned into 15+ packages and there was no way to upgrade the configuration. Once I got glance installed that wasn't the end. It apparently required I set up half of OpenStack as well including [Keystone Auth](https://www.openstack.org/software/releases/ocata/components/keystone).
 
 After spending a few days trying to get all the requisite packages installed and configured for what amounted to a few scripts to uploading images and an http hosted image repo, I thought to myself "Couldn't I just write this in bash?". At this point I was somewhat frustrated with glance so I made the name a play off the name. With that, [Glare](https://github.com/jayson/glare) was born. 
 

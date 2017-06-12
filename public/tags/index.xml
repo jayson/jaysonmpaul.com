@@ -6,9 +6,46 @@
     <description>Recent content in Tags on Jayson Paul</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>en-us</language>
+    <lastBuildDate>Fri, 09 Jun 2017 20:06:32 -0400</lastBuildDate>
     
 	<atom:link href="https://jaysonmpaul.com/tags/index.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Bash</title>
+      <link>https://jaysonmpaul.com/tags/bash/</link>
+      <pubDate>Fri, 09 Jun 2017 20:06:32 -0400</pubDate>
+      
+      <guid>https://jaysonmpaul.com/tags/bash/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Openstack</title>
+      <link>https://jaysonmpaul.com/tags/openstack/</link>
+      <pubDate>Fri, 09 Jun 2017 20:06:32 -0400</pubDate>
+      
+      <guid>https://jaysonmpaul.com/tags/openstack/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Projects</title>
+      <link>https://jaysonmpaul.com/tags/projects/</link>
+      <pubDate>Fri, 09 Jun 2017 20:06:32 -0400</pubDate>
+      
+      <guid>https://jaysonmpaul.com/tags/projects/</guid>
+      <description></description>
+    </item>
+    
+    <item>
+      <title>Virualization</title>
+      <link>https://jaysonmpaul.com/tags/virualization/</link>
+      <pubDate>Fri, 09 Jun 2017 20:06:32 -0400</pubDate>
+      
+      <guid>https://jaysonmpaul.com/tags/virualization/</guid>
+      <description></description>
+    </item>
     
   </channel>
 </rss>
