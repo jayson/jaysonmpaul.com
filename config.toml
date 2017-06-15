@@ -17,3 +17,7 @@ title = "Jayson Paul"
     name = "posts"
     weight = 0
     url = "/post"
+  [[menu.header]]
+    name = "resume"
+    weight = 0
+    url = "/resume.pdf"
