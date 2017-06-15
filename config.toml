@@ -14,10 +14,10 @@ title = "Jayson Paul"
 
 [menu]
   [[menu.header]]
+    name = "resume"
+    weight = 1
+    url = "/resume.pdf"
+  [[menu.header]]
     name = "posts"
     weight = 0
     url = "/post"
-  [[menu.header]]
-    name = "resume"
-    weight = 0
-    url = "/resume.pdf"
